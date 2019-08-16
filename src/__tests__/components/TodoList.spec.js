@@ -1,23 +1,42 @@
 import React from "react";
 import { mount } from "enzyme";
-import TodoList from "../../ToDoList";
 
-it("should render the list and button", () => {
-  const wrapper = mount(<TodoList />);
+//Connect to redux
+import { Provider } from "react-redux";
+import { Creators as TodosActions } from "../../store/ducks/todos";
 
-  expect(wrapper.find("ul").exists()).toBe(true);
-  expect(wrapper.find('input[name="todo"]').exists()).toBe(true);
-  expect(wrapper.find("button").exists()).toBe(true);
+//Component
+import { TodoList } from "../../components";
+
+// Create Mock Store
+import createStore from "redux-mock-store";
+const mokeStore = createStore();
+const DEFAULT_STATE = {
+  todos: { data: ["Fazer cafe", "Alguma coisa"] }
+};
+const store = mokeStore(DEFAULT_STATE);
+
+//Testes
+it("should render the list", () => {
+  const wrapper = mount(
+    <Provider store={store}>
+      <TodoList />
+    </Provider>
+  );
+
+  expect(wrapper.find("li").length).toBe(2);
 });
 
-it("should be able to add new todo", () => {
-  const wrapper = mount(<TodoList />);
+//Testes
+it("should be able add new todo", () => {
+  const wrapper = mount(
+    <Provider store={store}>
+      <TodoList />
+    </Provider>
+  );
 
-  wrapper.find('input[name ="todo"]').simulate("change", {
-    target: { value: "Novo todo" }
-  });
-
+  wrapper.find("TodoList").setState({ newTodo: "Novo Todo" });
   wrapper.find("button").simulate("click");
 
-  expect(wrapper.find("ul").contains(<li>Novo todo</li>)).toBe(true);
+  expect(store.getActions()).toContainEqual(TodosActions.addTodo("Novo Todo"));
 });
